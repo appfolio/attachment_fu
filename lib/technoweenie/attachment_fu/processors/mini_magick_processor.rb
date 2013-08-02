@@ -61,6 +61,21 @@ module Technoweenie # :nodoc:
               commands.background('#ffffff')
               commands.gravity('center')
               commands.extent(size)
+            elsif size.is_a?(String) && size =~ /^crop.*$/  # cschulte: New crop with offset
+              params = size[4,size.length].split(/(x|\+)/)
+              Rails.logger.debug "--------------"
+              Rails.logger.debug "--------------"
+              Rails.logger.debug "--------------"
+              Rails.logger.debug params.inspect
+              if params.size == 7
+                Rails.logger.debug "Cropping to: #{params[4]} #{params[6]} #{params[0]} #{params[2]}"
+                commands.extract("#{params[0].to_i}x#{params[2].to_i}+#{params[4].to_i}+#{params[6].to_i}")
+
+              Rails.logger.debug "--------------"
+              Rails.logger.debug "--------------"
+              Rails.logger.debug "--------------"
+#                img.crop!(params[4].to_i, params[6].to_i, params[0].to_i, params[2].to_i)
+              end
             # crop thumbnail, the smart way
             elsif size.is_a?(String) and size =~ /c$/
                size = size.gsub(/c/, '')

@@ -180,9 +180,9 @@ module Technoweenie # :nodoc:
       delegate :content_types, :to => ::Technoweenie::AttachmentFu
 
       # Performs common validations for attachment models.
-      def validates_as_attachment
-        validates_presence_of :size, :content_type, :filename
-        validate              :attachment_attributes_valid?
+      def validates_as_attachment(conditions = {})
+        validates_presence_of :size, :content_type, :filename, conditions
+        validate              :attachment_attributes_valid?, conditions
       end
 
       # Returns true or false if the given content type is recognized as an image.
@@ -296,7 +296,14 @@ module Technoweenie # :nodoc:
 
       # Gets the thumbnail name for a filename.  'foo.jpg' becomes 'foo_thumbnail.jpg'
       def thumbnail_name_for(thumbnail = nil)
-        return filename if thumbnail.blank?
+        if thumbnail.blank?
+          if filename.nil?
+            return ''
+          else
+            return filename
+          end
+        end
+        
         ext = nil
         basename = filename.gsub /\.\w+$/ do |s|
           ext = s; ''
@@ -421,6 +428,11 @@ module Technoweenie # :nodoc:
       def with_image(&block)
         self.class.with_image(temp_path, &block)
       end
+      
+      # cschulte: Added this to force crop an image
+      def forced_geometry_to(str)
+        @forced_geometry = str
+      end
 
       protected
         # Generates a unique filename for a Tempfile.
@@ -504,7 +516,11 @@ module Technoweenie # :nodoc:
         # Resizes the given processed img object with either the attachment resize options or the thumbnail resize options.
         def resize_image_or_thumbnail!(img)
           if (!respond_to?(:parent_id) || parent_id.nil?) && attachment_options[:resize_to] # parent image
-            resize_image(img, attachment_options[:resize_to])
+            if @forced_geometry != nil
+              resize_image(img, @forced_geometry)
+            else
+              resize_image(img, attachment_options[:resize_to])
+            end
           elsif thumbnail_resize_options # thumbnail
             resize_image(img, thumbnail_resize_options)
           end
