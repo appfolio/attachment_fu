@@ -182,7 +182,7 @@ module Technoweenie # :nodoc:
           end
 
           begin
-            @@s3_config_path = base.attachment_options[:s3_config_path] || File.join(Rails.root, 'config', 'amazon_s3.yml')
+            @@s3_config_path = base.attachment_options[:s3_config_path] || File.join(Rails.root, 'config', 'aws.yml')
             @@s3_config = @@s3_config = YAML.load(ERB.new(File.read(@@s3_config_path)).result)[Rails.env].symbolize_keys
           #rescue
           #  raise ConfigFileNotFoundError.new('File %s not found' % @@s3_config_path)
@@ -193,11 +193,9 @@ module Technoweenie # :nodoc:
           if bucket_key and s3_config[bucket_key.to_sym]
             eval_string = "def bucket_name()\n  \"#{s3_config[bucket_key.to_sym]}\"\nend"
           else
-            eval_string = "def bucket_name()\n  \"#{s3_config[:bucket_name]}\"\nend"
+            eval_string = "def bucket_name()\n  \"#{s3_config[:attachment_fu_bucket_name]}\"\nend"
           end
           base.class_eval(eval_string, __FILE__, __LINE__)
-
-          Base.establish_connection!(s3_config.slice(:access_key_id, :secret_access_key, :server, :port, :use_ssl, :persistent, :proxy))
 
           # Bucket.create(@@bucket_name)
 
@@ -205,7 +203,7 @@ module Technoweenie # :nodoc:
         end
 
         def self.protocol
-          @protocol ||= s3_config[:use_ssl] ? 'https://' : 'http://'
+          @protocol ||= 'https://'
         end
 
         def self.hostname
@@ -213,7 +211,7 @@ module Technoweenie # :nodoc:
         end
 
         def self.port_string
-          @port_string ||= (s3_config[:port].nil? || s3_config[:port] == (s3_config[:use_ssl] ? 443 : 80)) ? '' : ":#{s3_config[:port]}"
+          @port_string ||= (s3_config[:port].nil? || s3_config[:port] == 443) ? '' : ":#{s3_config[:port]}"
         end
 
         def self.distribution_domain
