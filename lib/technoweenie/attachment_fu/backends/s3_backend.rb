@@ -270,7 +270,7 @@ module Technoweenie # :nodoc:
         #
         # The optional thumbnail argument will output the thumbnail's filename (if any).
         def s3_url(thumbnail = nil)
-          AWS::S3.new.buckets[bucket_name].objects[full_filename(thumbnail)].public_url(:secure => true)
+          AWS::S3.new.buckets[bucket_name].objects[full_filename(thumbnail)].public_url(:secure => true).to_s
         end
 
         # All public objects are accessible via a GET request to CloudFront. You can generate a
@@ -320,9 +320,12 @@ module Technoweenie # :nodoc:
         #   @photo.authenticated_s3_url('thumbnail', :expires_in => 5.hours, :use_ssl => true)
         def authenticated_s3_url(*args)
           options   = args.extract_options!
-          options[:expires_in] = options[:expires_in].to_i if options[:expires_in]
+          if options[:expires_in]
+            options[:expires] = options[:expires_in].to_i 
+            options.delete(:expires_in)
+          end
           thumbnail = args.shift
-          S3Object.url_for(full_filename(thumbnail), bucket_name, options)
+          AWS::S3.new.buckets[bucket_name].objects[full_filename(thumbnail)].url_for(:read, options).to_s
         end
 
         def create_temp_file
