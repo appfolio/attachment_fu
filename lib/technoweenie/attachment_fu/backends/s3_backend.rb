@@ -1,13 +1,13 @@
 module Technoweenie # :nodoc:
   module AttachmentFu # :nodoc:
     module Backends
-      # = OldAWS::S3 Storage Backend
+      # = AWS::S3 Storage Backend
       #
       # Enables use of {Amazon's Simple Storage Service}[http://aws.amazon.com/s3] as a storage mechanism
       #
       # == Requirements
       #
-      # Requires the {OldAWS::S3 Library}[http://amazon.rubyforge.org] for S3 by Marcel Molina Jr. installed either
+      # Requires the {AWS::S3 Library}[http://amazon.rubyforge.org] for S3 by Marcel Molina Jr. installed either
       # as a gem or a as a Rails plugin.
       #
       # == Configuration
@@ -50,7 +50,7 @@ module Technoweenie # :nodoc:
       # * <tt>:secret_access_key</tt> - The secret access key for your S3 account. Provided by Amazon.
       # * <tt>:bucket_name</tt> - A unique bucket name (think of the bucket_name as being like a database name).
       #
-      # If any of these required arguments is missing, a MissingAccessKey exception will be raised from OldAWS::S3.
+      # If any of these required arguments is missing, a MissingAccessKey exception will be raised from AWS::S3.
       #
       # == About bucket names
       #
@@ -176,10 +176,10 @@ module Technoweenie # :nodoc:
           mattr_reader :bucket_name, :s3_config
 
           begin
-            require 'oldaws/s3'
-            include OldAWS::S3
+            require 'aws/s3'
+            include AWS::S3
           rescue LoadError
-            raise RequiredLibraryNotFoundError.new('OldAWS::S3 could not be loaded')
+            raise RequiredLibraryNotFoundError.new('AWS::S3 could not be loaded')
           end
 
           begin
@@ -210,7 +210,7 @@ module Technoweenie # :nodoc:
         end
 
         def self.hostname
-          @hostname ||= s3_config[:server] || OldAWS::S3::DEFAULT_HOST
+          @hostname ||= s3_config[:server] || AWS::S3::DEFAULT_HOST
         end
 
         def self.port_string
@@ -268,7 +268,7 @@ module Technoweenie # :nodoc:
         #   @photo.s3_url
         #
         # The resulting url is in the form: <tt>http(s)://:server/:bucket_name/:table_name/:id/:file</tt> where
-        # the <tt>:server</tt> variable defaults to <tt>OldAWS::S3 URL::DEFAULT_HOST</tt> (s3.amazonaws.com) and can be
+        # the <tt>:server</tt> variable defaults to <tt>AWS::S3 URL::DEFAULT_HOST</tt> (s3.amazonaws.com) and can be
         # set using the configuration parameters in <tt>#{Rails.root}/config/amazon_s3.yml</tt>.
         #
         # The optional thumbnail argument will output the thumbnail's filename (if any).
