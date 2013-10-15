@@ -333,10 +333,11 @@ module Technoweenie # :nodoc:
         end
 
         def current_data
+          obj = AWS::S3.new.buckets[bucket_name].objects[full_filename]
           if attachment_options[:encrypted_storage] && self.respond_to?(:encryption_key) && self.encryption_key != nil
-            EncryptedData.decrypt_data(S3Object.value(full_filename, bucket_name), self.encryption_key)
+            EncryptedData.decrypt_data(obj.read, self.encryption_key)
           else
-            S3Object.value full_filename, bucket_name
+            obj.read
           end
         end
 
