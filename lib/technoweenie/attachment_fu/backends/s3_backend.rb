@@ -360,7 +360,7 @@ module Technoweenie # :nodoc:
         protected
           # Called in the after_destroy callback
           def destroy_file
-            S3Object.delete full_filename, bucket_name
+            AWS::S3.new.buckets[bucket_name].objects[full_filename].delete       
           end
 
           def rename_file
@@ -368,12 +368,8 @@ module Technoweenie # :nodoc:
 
             old_full_filename = File.join(base_path, @old_filename)
 
-            S3Object.rename(
-              old_full_filename,
-              full_filename,
-              bucket_name,
-              :access => attachment_options[:s3_access]
-            )
+            obj = AWS::S3.new.buckets[bucket_name].objects[full_filename] 
+            obj.move_to(full_filename, :acl => attachment_options[:s3_access])
 
             @old_filename = nil
             true
@@ -381,25 +377,17 @@ module Technoweenie # :nodoc:
 
           def save_to_storage
             if save_attachment?
+              write_options = {
+                :content_type => content_type,
+                :acl => attachment_options[:s3_access],
+              }
+
               if attachment_options[:encrypted_storage]
-                S3Object.store(
-                  full_filename,
-                  (temp_path ? File.open(temp_path) : temp_data),
-                  bucket_name,
-                  :content_type => content_type,
-                  :access => attachment_options[:s3_access],
-                  'x-amz-server-side-encryption' => 'AES256',
-                  'Content-Disposition' => "attachment; filename=\"#{filename}\""
-                )
-              else
-                S3Object.store(
-                  full_filename,
-                  (temp_path ? File.open(temp_path) : temp_data),
-                  bucket_name,
-                  :content_type => content_type,
-                  :access => attachment_options[:s3_access]
-                )
+                write_options[:server_side_encryption] = :aes256
+                write_options[:content_disposition] = "attachment; filename=\"#{filename}\""
               end
+
+              AWS::S3.new.buckets[bucket_name].objects[full_filename].write((temp_path ? File.open(temp_path, 'rb') : temp_data), write_options)
             end
 
             @old_filename = nil
