@@ -176,10 +176,9 @@ module Technoweenie # :nodoc:
           mattr_reader :bucket_name, :s3_config
 
           begin
-            require 'aws/s3'
-            include AWS::S3
+            require 'aws-sdk'
           rescue LoadError
-            raise RequiredLibraryNotFoundError.new('AWS::S3 could not be loaded')
+            raise RequiredLibraryNotFoundError.new('aws-sdk library could not be loaded')
           end
 
           begin
