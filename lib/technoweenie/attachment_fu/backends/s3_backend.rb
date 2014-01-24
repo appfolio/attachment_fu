@@ -251,7 +251,7 @@ module Technoweenie # :nodoc:
         #
         # The optional thumbnail argument will output the thumbnail's filename (if any).
         def s3_url(thumbnail = nil)
-          s3_bucket[full_filename(thumbnail)].public_url(secure: self.class.s3_config[:use_ssl])
+          s3_bucket.objects[full_filename(thumbnail)].public_url(secure: self.class.s3_config[:use_ssl])
         end
 
         # All public objects are accessible via a GET request to CloudFront. You can generate a
@@ -304,7 +304,7 @@ module Technoweenie # :nodoc:
           options[:expires] = options[:expires_in].to_i if options[:expires_in]
           options[:secure] = options[:use_ssl] unless options[:use_ssl].nil?
           thumbnail = args.shift
-          s3_bucket[full_filename(thumbnail)].url_for(:get, options.slice(:expires, :secure))
+          s3_bucket.objects[full_filename(thumbnail)].url_for(:get, options.slice(:expires, :secure))
         end
 
         def create_temp_file
@@ -313,9 +313,9 @@ module Technoweenie # :nodoc:
 
         def current_data
           if attachment_options[:encrypted_storage] && self.respond_to?(:encryption_key) && self.encryption_key != nil
-            EncryptedData.decrypt_data(s3_bucket[full_filename].read, self.encryption_key)
+            EncryptedData.decrypt_data(s3_bucket.objects[full_filename].read, self.encryption_key)
           else
-            s3_bucket[full_filename].read
+            s3_bucket.objects[full_filename].read
           end
         end
 
@@ -330,13 +330,13 @@ module Technoweenie # :nodoc:
         protected
           # Called in the after_destroy callback
           def destroy_file
-            s3_bucket[full_filename].delete
+            s3_bucket.objects[full_filename].delete
           end
 
           def rename_file
             return unless @old_filename && @old_filename != filename
             old_full_filename = File.join(base_path, @old_filename)
-            s3_bucket[old_full_filename].move_to(full_filename, acl: attachment_options[:s3_access])
+            s3_bucket.objects[old_full_filename].move_to(full_filename, acl: attachment_options[:s3_access])
             @old_filename = nil
             true
           end
@@ -344,7 +344,7 @@ module Technoweenie # :nodoc:
           def save_to_storage
             if save_attachment?
               if attachment_options[:encrypted_storage]
-                s3_bucket[full_filename].write(
+                s3_bucket.objects[full_filename].write(
                     (temp_path ? File.open(temp_path) : temp_data),
                     content_type: content_type,
                     acl: attachment_options[:s3_access],
@@ -353,7 +353,7 @@ module Technoweenie # :nodoc:
                 )
 
               else
-                s3_bucket[full_filename].write(
+                s3_bucket.objects[full_filename].write(
                     (temp_path ? File.open(temp_path) : temp_data),
                     content_type: content_type,
                     acl: attachment_options[:s3_access],
