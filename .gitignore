@@ -4,3 +4,4 @@ tmp/restart.txt
 *.gem
 # vim swap files
 *.swp
+.idea
