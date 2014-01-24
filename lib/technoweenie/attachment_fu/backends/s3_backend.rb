@@ -255,7 +255,7 @@ module Technoweenie # :nodoc:
         #
         # The optional thumbnail argument will output the thumbnail's filename (if any).
         def s3_url(thumbnail = nil)
-          s3_bucket.objects[full_filename(thumbnail)].public_url(secure: s3_config[:use_ssl])
+          s3_bucket.objects[full_filename(thumbnail)].public_url(secure: s3_config[:use_ssl]).to_s
         end
 
         # All public objects are accessible via a GET request to CloudFront. You can generate a
@@ -309,7 +309,7 @@ module Technoweenie # :nodoc:
           opts[:expires] = options[:expires_in] if options[:expires_in]
           opts[:secure] = options[:use_ssl] unless options[:use_ssl].nil?
           thumbnail = args.shift
-          s3_bucket.objects[full_filename(thumbnail)].url_for(:get, opts.slice(:expires, :secure))
+          s3_bucket.objects[full_filename(thumbnail)].url_for(:get, opts.slice(:expires, :secure)).to_s
         end
 
         def create_temp_file
