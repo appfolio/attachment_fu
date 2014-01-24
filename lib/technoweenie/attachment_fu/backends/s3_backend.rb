@@ -199,6 +199,10 @@ module Technoweenie # :nodoc:
           self.class.s3_bucket
         end
 
+        def s3_config
+          self.class.s3_config
+        end
+
         def self.protocol
           @protocol ||= s3_config[:use_ssl] ? 'https://' : 'http://'
         end
@@ -251,7 +255,7 @@ module Technoweenie # :nodoc:
         #
         # The optional thumbnail argument will output the thumbnail's filename (if any).
         def s3_url(thumbnail = nil)
-          s3_bucket.objects[full_filename(thumbnail)].public_url(secure: self.class.s3_config[:use_ssl])
+          s3_bucket.objects[full_filename(thumbnail)].public_url(secure: s3_config[:use_ssl])
         end
 
         # All public objects are accessible via a GET request to CloudFront. You can generate a
@@ -301,10 +305,11 @@ module Technoweenie # :nodoc:
         #   @photo.authenticated_s3_url('thumbnail', :expires_in => 5.hours, :use_ssl => true)
         def authenticated_s3_url(*args)
           options   = args.extract_options!
-          options[:expires] = options[:expires_in].to_i if options[:expires_in]
-          options[:secure] = options[:use_ssl] unless options[:use_ssl].nil?
+          opts = {}
+          opts[:expires] = options[:expires_in] if options[:expires_in]
+          opts[:secure] = options[:use_ssl] unless options[:use_ssl].nil?
           thumbnail = args.shift
-          s3_bucket.objects[full_filename(thumbnail)].url_for(:get, options.slice(:expires, :secure))
+          s3_bucket.objects[full_filename(thumbnail)].url_for(:get, opts.slice(:expires, :secure))
         end
 
         def create_temp_file
