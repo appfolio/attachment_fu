@@ -305,11 +305,10 @@ module Technoweenie # :nodoc:
         #   @photo.authenticated_s3_url('thumbnail', :expires_in => 5.hours, :use_ssl => true)
         def authenticated_s3_url(*args)
           options   = args.extract_options!
-          opts = {}
-          opts[:expires] = options[:expires_in] if options[:expires_in]
-          opts[:secure] = options[:use_ssl] unless options[:use_ssl].nil?
+          options[:expires] = options[:expires_in] if options[:expires_in]
+          options[:secure] = options[:use_ssl] unless options[:use_ssl].nil?
           thumbnail = args.shift
-          s3_bucket.objects[full_filename(thumbnail)].url_for(:get, opts.slice(:expires, :secure)).to_s
+          s3_bucket.objects[full_filename(thumbnail)].url_for(:get, options.slice(:expires, :secure)).to_s
         end
 
         def create_temp_file
